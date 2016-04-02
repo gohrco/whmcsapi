@@ -2,7 +2,7 @@
     "name": "steven-gohigher/whmcsapi",
     "description": "API interface handler for WHMCS v6.0 and above",
     "require": {
-        
+        "monolog/monolog": "^1.18"
     },
     "authors": [
         {
