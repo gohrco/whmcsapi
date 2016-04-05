@@ -12,6 +12,5 @@
     ],
     "autoload": {
         "psr-4": {"Whmcsapi\\": "src/Whmcsapi"}
-    },
-    "minimum-stability": "dev"
+    }
 }
