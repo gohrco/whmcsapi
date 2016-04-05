@@ -9,8 +9,5 @@
             "name": "Steven Mueller",
             "email": "steven@gohigheris.com"
         }
-    ],
-    "autoload": {
-        "psr-4": {"Whmcsapi\\": "src/Whmcsapi"}
-    }
+    ]
 }
