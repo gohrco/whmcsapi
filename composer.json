@@ -1,5 +1,5 @@
 {
-    "name": "steven-gohigher/whmcsapi",
+    "name": "gohrco/whmcsapi",
     "description": "API interface handler for WHMCS v6.0 and above",
     "require": {
         "monolog/monolog": "^1.18"
@@ -11,7 +11,7 @@
         }
     ],
     "autoload": {
-        "psr-4": {"Whmcsapi\\": "src"}
+        "psr-4": {"Whmcsapi\\": "src/Whmcsapi"}
     },
     "minimum-stability": "dev"
 }
