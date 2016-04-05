@@ -1,6 +1,6 @@
 <?php
 
-namespace Whmcsapi;
+namespace Gohrco;
 
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
@@ -14,7 +14,7 @@ defined( 'MPNLOGLEVEL' ) or define( "MPNLOGLEVEL", \Monolog\Logger :: WARNING );
  * WHMCS API Handler
  * @since		2016 Apr 1
  */
-class Api
+class Whmcsapi
 {
 	private $log	=	null;
 	private	$user	=	null;
