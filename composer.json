@@ -10,5 +10,8 @@
             "email": "steven@gohigheris.com"
         }
     ],
+    "autoload": {
+        "psr-4": {"Whmcsapi\\": "src"}
+    },
     "minimum-stability": "dev"
 }
