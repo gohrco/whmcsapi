@@ -8,7 +8,7 @@ use Monolog\Processor\IntrospectionProcessor;
 use Monolog\ErrorHandler;
 
 // Log level
-defined( 'MPNLOGLEVEL' ) or define( "MPNLOGLEVEL", \Monolog\Logger :: WARNING );
+defined( 'WHMCSAPILOGLEVEL' ) or define( "WHMCSAPILOGLEVEL", \Monolog\Logger :: WARNING );
 
 /**
  * WHMCS API Handler
@@ -16,30 +16,36 @@ defined( 'MPNLOGLEVEL' ) or define( "MPNLOGLEVEL", \Monolog\Logger :: WARNING );
  */
 class Whmcsapi
 {
-	private $log	=	null;
-	private	$user	=	null;
-	private $pass	=	null;
-	private $apiurl	=	null;
+	private $log		=	null;
+	private $logpath	=	null;
+	private	$username	=	null;
+	private $password	=	null;
+	private $url		=	null;
+	
 	
 	/**
 	 * Constructor class
 	 * @access		public
 	 * @param		array		This should contain an array with our user settings
 	 * 
-	 * @since		2016 Mar 4
+	 * @since		2016 Apr 4
 	 */
-	public function __construct( $options )
+	public function __construct( $o = array() )
 	{
-		$this->user		=	$options['user'];
-		$this->pass		=	md5( $options['pass'] );
-		$this->apiurl	=	$options['url'];
+		$init	=	false;
+		if (	isset( $o['username'] ) 
+			&&	isset( $o['password'] )
+			&&	isset( $o['url'] )
+			&&	isset( $o['logpath'] ) ) $init = true;
 		
-		$this->log	=	new Logger( 'whmcsapi' );
-		$this->log->pushHandler( new StreamHandler( __DIR__ . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'mpnapi.log', MPNLOGLEVEL ) );
-		$this->log->pushProcessor( new IntrospectionProcessor() );
-		$this->log->addInfo( 'Initialized' );
+		foreach ( array( 'username', 'password', 'url', 'logpath' ) as $key ) {
+			if ( $key == 'password' && isset( $o[$key] ) ) $o[$key] = md5( $o[$key] );
+			if ( isset( $o[$key] ) ) $this->$key	=	$o[$key];
+		}
 		
-		ErrorHandler :: register( $this->log );
+		if ( $init ) {
+			$this->init();
+		}
 	}
 	
 	
@@ -50,16 +56,20 @@ class Whmcsapi
 	 * @param		array
 	 *
 	 * @return		array | false
-	 * @since		2016 Apr 1
+	 * @since		2016 Apr 4
 	 */
 	public function __call( $name, $args )
 	{
+		if ( in_array( $name, array( 'setUsername', 'setPassword','setUrl', 'setLogpath' ) ) ) {
+			return $this->setitem( $name, $args );
+		}
+		
 		$data		=	( count( $args ) > 0 ? array_shift( $args ) : array() );
 		
-		$this->log->addDebug( $name . ' Request Received', $data );
+		$this->log->addInfo( $name . ' Request Received', $data );
 		
 		if (! is_array( $data ) ) {
-			$this->log->addWarning( 'Data passed to MPN API is not an array', array( 'notanarray' => $data ) );
+			$this->log->addWarning( 'Data passed to WHMCS API is not an array', array( 'notanarray' => $data ) );
 			$data	=	array( $data );
 		}
 		
@@ -82,6 +92,41 @@ class Whmcsapi
 	
 	
 	/**
+	 * Method for initializing the object
+	 * @access		public
+	 * @version		@fileVers@
+	 *
+	 * @since		2016 Apr 5
+	 */
+	public function init()
+	{
+		$this->log	=	new Logger( 'whmcsapi' );
+		$this->log->pushHandler( new StreamHandler( $this->logpath, WHMCSAPILOGLEVEL ) );
+		$this->log->pushProcessor( new IntrospectionProcessor() );
+		$this->log->addInfo( 'Initialized' );
+		ErrorHandler :: register( $this->log );
+	}
+	
+	
+	/**
+	 * Method to set an item on this object
+	 * @access		public
+	 * @version		@fileVers@
+	 * @param		string		method called
+	 * @param		array		passed by magic __call method
+	 *
+	 * @since		2016 Apr 5
+	 */
+	public function setitem( $name, $args )
+	{
+		$name	=	strtolower( str_replace( 'set', '', $name ) );
+		$value	=	$args[0];
+		if ( $name == 'password' ) $value = md5( $value );
+		$this->$name	=	$value;
+	}
+	
+	
+	/**
 	 * Method for parsing all returned data regardless of response type
 	 * @desc		Provide uniform method of retrieving data from our system
 	 * @access		private
@@ -89,7 +134,7 @@ class Whmcsapi
 	 * @param		string
 	 * 
 	 * @return		array | string | false
-	 * @since		2016 Apr 1
+	 * @since		2016 Apr 4
 	 */
 	private function _parse( $data, $action = null )
 	{
@@ -128,15 +173,15 @@ class Whmcsapi
 	 * @param		array
 	 *
 	 * @return		mixed|false
-	 * @since		2016 Apr 1
+	 * @since		2016 Apr 4
 	 */
 	private function _request( $action, $fields )
 	{
-		$fields['username']		=	$this->user;
-		$fields['password']		=	$this->pass;
+		$fields['username']		=	$this->username;
+		$fields['password']		=	$this->password;
 		$fields['action']		=	$action;
 		
-		$call	=	rtrim( $this->apiurl, '/' ) . '/includes/api.php';
+		$call	=	rtrim( $this->url, '/' ) . '/includes/api.php';
 		
 		try {
 			
@@ -159,7 +204,7 @@ class Whmcsapi
 							'result'	=>	$file,
 						);
 			foreach( $fields as $k => $f ) $arr["{$k}"]	=	$f;
-			$this->log->addWarning( 'Error making call to MPN:  ' . $action, array( $arr ) );
+			$this->log->addWarning( 'Error making call to API:  ' . $action, array( $arr ) );
 			return false;
 		}
 		
