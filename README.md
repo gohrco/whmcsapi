@@ -1,4 +1,4 @@
-# whmcsapi
+# Whmcsapi
 ## Synopsis
 
 API interface handler for WHMCS v6.0 and above
@@ -25,7 +25,7 @@ $api		=	new Whmcsapi();
 $api->setUsername( 'apiadmin' );
 $api->setPassword( 'password' );
 $api->setUrl( 'http://url.to.your/whmcs/' );
-$api->setLogpath( '\absolute\path\to\log\entries\' );
+$api->setLogpath( '\absolute\path\to\log\entries' );
 
 // Init
 $api->init();
