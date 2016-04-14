@@ -16,13 +16,15 @@ defined( 'WHMCSAPILOGLEVEL' ) or define( "WHMCSAPILOGLEVEL", \Monolog\Logger :: 
  */
 class Whmcsapi
 {
+	private $accesskey	=	null;
 	private $log		=	null;
 	private $logpath	=	null;
 	private	$username	=	null;
 	private $password	=	null;
 	private $url		=	null;
 	
-	
+	private $_info		=	null;
+	private $_result	=	null;
 	/**
 	 * Constructor class
 	 * @access		public
@@ -60,7 +62,7 @@ class Whmcsapi
 	 */
 	public function __call( $name, $args )
 	{
-		if ( in_array( $name, array( 'setUsername', 'setPassword','setUrl', 'setLogpath' ) ) ) {
+		if ( in_array( $name, array( 'setUsername', 'setPassword','setUrl', 'setLogpath', 'setAccesskey' ) ) ) {
 			return $this->setitem( $name, $args );
 		}
 		
@@ -179,6 +181,11 @@ class Whmcsapi
 	{
 		$fields['username']		=	$this->username;
 		$fields['password']		=	$this->password;
+		
+		if (! is_null( $this->accesskey ) ) {
+			$fields['accesskey']	=	$this->accesskey;
+		}
+		
 		$fields['action']		=	$action;
 		
 		$call	=	rtrim( $this->url, '/' ) . '/includes/api.php';
@@ -188,13 +195,17 @@ class Whmcsapi
 			$ch = curl_init();
 			curl_setopt( $ch, CURLOPT_URL, $call );
 			curl_setopt( $ch, CURLOPT_POST, 1 );
-			curl_setopt( $ch, CURLOPT_TIMEOUT, 30 );
+			curl_setopt( $ch, CURLOPT_TIMEOUT, 300 );
 			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
 			curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query( $fields ) );
 			$file = curl_exec( $ch );
 			if ( curl_error( $ch ) ) {
 				throw new \Exception('Unable to connect: ' . curl_errno( $ch ) . ' - ' . curl_error( $ch ) );
 			}
+			$this->_result	=	$file;
+			$this->_info	=	curl_getinfo( $ch );
 			curl_close( $ch );
 		}
 		catch (\Exception $e ) {
