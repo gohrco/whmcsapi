@@ -4,6 +4,15 @@
     "require": {
         "monolog/monolog": "^1.18"
     },
+    "require-dev": {
+        "monolog/monolog": "^1.18",
+        "phpunit/phpunit": "4.0.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Gohrco\\Whmcsapi\\": "src"
+        }
+    },
     "authors": [
         {
             "name": "Steven Mueller",
