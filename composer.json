@@ -10,7 +10,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Gohrco\\Whmcsapi": "src"
+            "Gohrco\\Whmcsapi\\": "src/Gohrco/Whmcsapi"
         }
     },
     "authors": [
